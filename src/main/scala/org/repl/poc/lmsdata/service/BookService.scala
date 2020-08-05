@@ -57,8 +57,11 @@ class BookService @Autowired() (mongoTemplate: MongoTemplate,
     paginatedDto.results = results.getMappedResults.asScala.map( x => x.createDto() )
     paginatedDto.pageNum = requestDto.pageNum
     paginatedDto.pageSize = requestDto.pageSize
-    paginatedDto.totalCount = 0
-
+    val aggTotal = newAggregation(
+      `match`(filterCriteria)
+    )
+    val allResults: AggregationResults[BookMdl] = mongoTemplate.aggregate(aggTotal,"Book",classOf[BookMdl])
+    paginatedDto.totalCount = allResults.getMappedResults.size()
     response.data = Some(paginatedDto)
     response.success = true
     return response
